@@ -1,4 +1,4 @@
-# Canvas Bulk Builder
+# Canvas Content Builder
 
 A separate Chrome extension from `Canvas Agent Editor`. The editor writes HTML into an
 open RCE. This app builds **course structure in bulk** — modules, pages, assignments,
@@ -18,18 +18,15 @@ is ever stored. Every action is limited to what that teacher can already do in C
 4. Select this folder
 5. Pin the extension, open a Canvas course, click the icon to open the side panel
 
-## Configure the agent
+## Organization configuration
 
-Open the **Settings** tab and enter the deployed organization proxy URL:
+The organization-managed proxy is preconfigured for the extension. It keeps the Airia
+API key outside the extension and teacher devices. Proxy configuration, agent prompts,
+and internal instructional resources are intentionally not included in this public
+repository.
 
-| Field | Value |
-|---|---|
-| Organization proxy URL | Your Apps Script web-app URL ending in `/exec` |
-
-The proxy holds the Airia API URL, the Bulk Builder pipeline ID, and the `X-API-KEY`
-as private Script Properties; none are stored on teacher devices. Its source lives in
-[`apps-script/`](apps-script/). Deploy it as **you**, restricted to users in your Google
-Workspace domain. Do not deploy it anonymously.
+The public privacy policy used for the Chrome Web Store is hosted at
+<https://ingham-isd.github.io/canvas-content-builder/>.
 
 **Loading a pipeline prompt is optional.** The extension sends its full output contract
 (modes, field rules, question types, marker format) with every request, so a bare
@@ -129,14 +126,13 @@ and re-saving is also what forces it to recompute `points_possible` from the que
 
 | File | Role |
 |---|---|
-| `manifest.json` | MV3 manifest; side panel, scripting, optional host permissions |
-| `background.js` | Agent API proxy, runtime host-permission requests |
-| `panel.html` / `panel.css` | Four-tab UI |
+| `manifest.json` | MV3 manifest; side panel, scripting, and Canvas host access |
+| `background.js` | Side-panel and extension runtime handling |
+| `panel.html` / `panel.css` | Main multi-workspace UI |
 | `panel.js` | Orchestration, validation, plan rendering, run logs |
 | `canvas-engine.js` | Self-contained injected Canvas API engine |
 | `sources.js` | File ingestion, including native DOCX extraction |
 | `templates.js` | Template library (shared lineage with the editor app) |
-| `AGENT_PROMPT.md` | The prompt to load into the pipeline |
 
 `canvas-engine.js` is serialized and re-parsed inside the Canvas page, so it **cannot
 reference anything outside its own function body**. Every helper it needs is declared

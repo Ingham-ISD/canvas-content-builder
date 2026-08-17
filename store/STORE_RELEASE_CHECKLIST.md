@@ -11,7 +11,7 @@
 ## You must complete before submitting
 
 1. Have the district review and approve `PRIVACY_POLICY_TEMPLATE.html`, then confirm the BrainFreeze/Airia tenant&rsquo;s actual retention, logging, administrator-access, and end-user-privacy settings. Update the policy if the tenant settings differ from the vendor baseline described there.
-2. Host the finalized privacy policy at a stable, publicly reachable district-controlled HTTPS URL. Paste that URL into the Chrome Web Store Privacy tab.
+2. Use the hosted privacy-policy URL in the Chrome Web Store Privacy tab: `https://ingham-isd.github.io/canvas-content-builder/`.
 3. Capture at least one accurate screenshot of the running extension at **1280 × 800**. Do not use generated or mocked screenshots as Store evidence.
 4. Create a 440 × 280 promo tile. It must accurately represent Canvas Content Builder and avoid claims such as “#1” or “official Canvas.”
 5. Confirm the district approves the described Airia use, data handling, and teacher guidance.
@@ -25,7 +25,7 @@
 - Name: `Canvas Content Builder`
 - Category: `Productivity`
 - Visibility for pilot: `Private / trusted testers`
-- Privacy policy: the hosted finalized policy URL
+- Privacy policy: `https://ingham-isd.github.io/canvas-content-builder/`
 - Support: district help desk/contact
 - Single purpose: help authorized educators plan, create, revise, and manage Canvas LMS instructional content using the organization-managed AI service.
 
