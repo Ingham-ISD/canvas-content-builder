@@ -1,0 +1,18 @@
+# Local implementation and working materials not intended for the public repository
+apps-script/
+Brainfreeze Data Sources/
+Test Materials/
+wilson-knowledge/
+AGENT_PROMPT.md
+ASSESSMENT_AGENT_PROMPT.md
+PAGE_EDITOR_AGENT_PROMPT.md
+BRAINFREEZE_SYSTEM_PROMPT.md
+WILSON_AGENT_ARCHITECTURE.md
+
+# Generated release artifacts
+store/release/
+
+# Local editor and operating-system files
+.DS_Store
+Thumbs.db
+*.log

@@ -1,0 +1,6 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="page-editor.css"><title>Page Editor</title></head><body>
+<section class="toolbar"><button id="scan" type="button">Scan current editor</button><label class="file-button">Attach source<input id="source" type="file" accept=".txt,.md,.html,.htm,text/plain,text/markdown,text/html"></label><span id="context" class="muted">Open a Canvas rich-content editor, then describe a change.</span></section>
+<section id="messages" aria-live="polite"></section><section class="composer"><textarea id="prompt" rows="3" placeholder="Describe what you want to create or change on this Canvas page…"></textarea><button id="send" type="button">Send</button></section>
+<details class="templates"><summary>Templates</summary><div id="templateList"></div></details>
+<script src="templates.js"></script><script src="page-editor.js"></script></body></html>

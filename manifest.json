@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Canvas Content Builder",
+  "version": "0.2.6",
+  "description": "Edit Canvas pages with AI or plan, build, and bulk-edit course content using the teacher's logged-in session.",
+  "permissions": ["sidePanel", "activeTab", "scripting", "storage", "tabs"],
+  "host_permissions": [
+    "https://*.instructure.com/*",
+    "https://*.instructuremedia.com/*",
+    "https://script.google.com/*",
+    "https://script.googleusercontent.com/*"
+  ],
+  "icons": {
+    "16": "assets/icon-16.png",
+    "32": "assets/icon-32.png",
+    "48": "assets/icon-48.png",
+    "128": "assets/icon-128.png"
+  },
+  "side_panel": {
+    "default_path": "panel.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Canvas Content Builder"
+  }
+}

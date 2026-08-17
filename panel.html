@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Canvas Content Builder</title>
+  <link rel="stylesheet" href="panel.css" />
+</head>
+<body>
+
+<header class="app-header">
+  <div class="brand">
+    <span class="brand-mark">CC</span>
+    <div>
+      <h1>Canvas Content Builder</h1>
+      <div id="courseStatus" class="course-line">Detecting course&hellip;</div>
+    </div>
+  </div>
+  <button id="refreshCourse" class="icon-btn" title="Re-detect course">&#8635;</button>
+</header>
+
+<div id="dataNotice" class="consent-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="dataNoticeTitle">
+  <section class="consent-dialog">
+    <h2 id="dataNoticeTitle">Before you use AI tools</h2>
+    <p>Canvas Content Builder sends only the material you choose to process&mdash;your prompt, uploaded source files, or the Canvas content selected for an AI rewrite&mdash;through the Ingham ISD Google Apps Script proxy to the organization&rsquo;s Airia AI service.</p>
+    <p>Your Canvas password and API key are not sent to the AI service. Do not submit student records, grades, IEP/504 information, passwords, API keys, or other confidential information unless your district has explicitly approved that use.</p>
+    <p>Review AI output before creating or publishing Canvas content. Google Drive links are not readable by the agent; upload/export a file or paste the relevant text instead.</p>
+    <button id="acceptDataNotice" class="btn btn-primary btn-block">I understand &amp; continue</button>
+    <button id="closeDataNotice" class="btn btn-ghost btn-block">Not now</button>
+  </section>
+</div>
+
+<nav class="tabs">
+  <button class="tab active" data-view="chat">Chat</button>
+  <button class="tab" data-view="editor">Page Editor</button>
+  <button class="tab" data-view="build">Build</button>
+  <button class="tab" data-view="assessment">Assessment Studio</button>
+  <button class="tab" data-view="bulk">Bulk Edit</button>
+  <button class="tab" data-view="templates">Templates</button>
+  <button class="tab" data-view="settings">Settings</button>
+</nav>
+
+<main>
+
+  <!-- ============ CHAT HOME ============ -->
+  <section id="view-chat" class="view active chat-view">
+    <div id="chatMessages" class="chat-messages" aria-live="polite">
+      <div class="chat-message assistant">
+        <div class="chat-bubble"><strong>Hi, I&rsquo;m your Canvas Content Builder.</strong><br />What are we working on today?</div>
+      </div>
+    </div>
+    <div class="chat-starters" aria-label="Suggested starting points">
+      <button class="chat-starter" data-chat-starter="Help me decide how to organize my course: weeks, units, chapters, bays, or a hybrid.">Plan my course</button>
+      <button class="chat-starter" data-chat-starter="Help me design a clear Canvas module for my next topic.">Design a module</button>
+      <button class="chat-starter" data-chat-starter="Help me choose a template and create a student-friendly Canvas page.">Create a page</button>
+      <button class="chat-starter" data-chat-starter="I have assessment questions and want to turn them into Classic Quizzes.">Plan assessments</button>
+    </div>
+    <div class="chat-source-row">
+      <button id="chatAttachSource" class="btn btn-ghost btn-small">Attach course material</button>
+      <input type="file" id="chatFileInput" accept=".docx,.txt,.md,.markdown,.html,.htm,.csv,.tsv,.json" hidden />
+      <span id="chatSourceStatus" class="chat-source-status hidden"></span>
+      <button id="chatClearSource" class="btn btn-ghost btn-small hidden">Remove</button>
+    </div>
+    <div class="chat-compose">
+      <textarea id="chatPrompt" rows="3" placeholder="Tell me what you want to build, improve, or figure out&hellip;"></textarea>
+      <button id="sendChat" class="btn btn-primary">Send</button>
+    </div>
+    <button id="chatCreatePlan" class="btn btn-primary btn-block">Create build plan from this</button>
+    <div id="chatError" class="status-card error hidden"></div>
+  </section>
+
+  <!-- ============ PAGE EDITOR ============ -->
+  <section id="view-editor" class="view editor-view">
+    <iframe id="pageEditorFrame" src="page-editor.html" title="Canvas Page Editor"></iframe>
+  </section>
+
+  <!-- ============ ASSESSMENT STUDIO ============ -->
+  <section id="view-assessment" class="view">
+    <div class="block">
+      <label class="block-label">Question source</label>
+      <div id="assessmentDropZone" class="drop-zone">
+        <strong>Drop a question document here</strong>
+        <span class="muted">.docx, .txt, .md, .html, .csv &mdash; one file may contain many tests</span>
+        <input type="file" id="assessmentFileInput" accept=".docx,.txt,.md,.markdown,.html,.htm,.csv,.tsv,.json,.rtf" hidden />
+      </div>
+      <div id="assessmentSourceStatus" class="status-card muted hidden"></div>
+      <button id="clearAssessmentSource" class="btn btn-ghost btn-small hidden">Remove source</button>
+    </div>
+
+    <div class="block">
+      <label class="block-label" for="assessmentPrompt">Instructions <span class="muted">(optional)</span></label>
+      <textarea id="assessmentPrompt" rows="3" placeholder="e.g. This file contains 18 Auto bay knowledge checks. Create one unpublished Classic Quiz per bay. Preserve wording and answer keys."></textarea>
+      <div class="hint">Assessment Studio separates every labeled test in the file, lets you review the entire batch, then creates Classic Quizzes only.</div>
+    </div>
+
+    <button id="generateAssessmentPlan" class="btn btn-primary btn-block">Analyze question document</button>
+    <div id="assessmentError" class="status-card error hidden"></div>
+
+    <div id="assessmentReview" class="block hidden">
+      <div class="section-title"><h2>Assessment batch review</h2><span id="assessmentCounts" class="pill"></span></div>
+      <div id="assessmentNotes" class="hint hidden"></div>
+      <div id="assessmentWarnings"></div>
+      <div id="assessmentPreview"></div>
+      <button id="runAssessmentBatch" class="btn btn-primary btn-block">Create Classic Quizzes in Canvas</button>
+      <button id="discardAssessmentPlan" class="btn btn-ghost btn-block">Discard assessment batch</button>
+    </div>
+
+    <div id="assessmentRunPanel" class="block hidden">
+      <div class="section-title"><h2>Run log</h2><span id="assessmentRunStatus" class="pill"></span></div>
+      <div class="progress-track"><div id="assessmentProgressBar" class="progress-fill"></div></div>
+      <div id="assessmentRunLog" class="run-log"></div>
+      <button id="copyAssessmentLog" class="btn btn-ghost btn-small">Copy log</button>
+    </div>
+  </section>
+
+  <!-- ============ BUILD ============ -->
+  <section id="view-build" class="view">
+
+    <div class="block">
+      <label class="block-label">Source material <span class="muted">(optional)</span></label>
+      <div id="dropZone" class="drop-zone">
+        <strong>Drop a file here</strong>
+        <span class="muted">.docx, .txt, .md, .html, .csv &mdash; or click to browse</span>
+        <input type="file" id="fileInput" accept=".docx,.txt,.md,.markdown,.html,.htm,.csv,.tsv,.json" hidden />
+      </div>
+      <div id="sourceStatus" class="status-card muted hidden"></div>
+      <button id="clearSource" class="btn btn-ghost btn-small hidden">Remove source</button>
+    </div>
+
+    <div class="block">
+      <label class="block-label" for="styleTemplate">Style reference <span class="muted">(optional)</span></label>
+      <select id="styleTemplate">
+        <option value="">No template &mdash; let the agent choose</option>
+      </select>
+      <div class="hint">The agent matches the structure and visual style of this template.</div>
+    </div>
+
+    <div class="block">
+      <label class="block-label" for="buildPrompt">What should we build?</label>
+      <textarea id="buildPrompt" rows="5"
+        placeholder="e.g. Build Unit 3 as four modules with an overview page, a graded discussion, and a 10-question classic quiz from the attached question list. Assignments worth 25 points, online upload only."></textarea>
+    </div>
+
+    <div class="block row">
+      <label class="check"><input type="checkbox" id="publishOnBuild" /> Publish created items</label>
+    </div>
+
+    <button id="generatePlan" class="btn btn-primary btn-block">Generate build plan</button>
+
+    <div id="planError" class="status-card error hidden"></div>
+
+    <div id="planReview" class="block hidden">
+      <div class="section-title">
+        <h2>Plan review</h2>
+        <span id="planCounts" class="pill"></span>
+      </div>
+      <div id="planNotes" class="hint hidden"></div>
+      <div id="planValidation"></div>
+      <div id="planPreview"></div>
+      <button id="runBuild" class="btn btn-primary btn-block">Create in Canvas</button>
+      <button id="discardPlan" class="btn btn-ghost btn-block">Discard plan</button>
+    </div>
+
+    <div id="runPanel" class="block hidden">
+      <div class="section-title">
+        <h2>Run log</h2>
+        <span id="runStatus" class="pill"></span>
+      </div>
+      <div class="progress-track"><div id="progressBar" class="progress-fill"></div></div>
+      <div id="runLog" class="run-log"></div>
+      <button id="copyLog" class="btn btn-ghost btn-small">Copy log</button>
+    </div>
+  </section>
+
+  <!-- ============ BULK EDIT ============ -->
+  <section id="view-bulk" class="view">
+
+    <button id="loadInventory" class="btn btn-primary btn-block">Load course content</button>
+    <div id="inventoryStatus" class="status-card muted hidden"></div>
+
+    <div id="inventoryPanel" class="hidden">
+      <div class="block">
+        <input type="search" id="itemFilter" placeholder="Filter by title&hellip;" />
+        <div class="chip-row" id="kindFilters">
+          <label class="chip"><input type="checkbox" value="page" checked /> Pages</label>
+          <label class="chip"><input type="checkbox" value="assignment" checked /> Assignments</label>
+          <label class="chip"><input type="checkbox" value="discussion" checked /> Discussions</label>
+          <label class="chip"><input type="checkbox" value="quiz" checked /> Quizzes</label>
+        </div>
+        <div class="row">
+          <button id="selectAll" class="btn btn-ghost btn-small">Select all shown</button>
+          <button id="selectNone" class="btn btn-ghost btn-small">Clear</button>
+          <span id="selectionCount" class="pill">0 selected</span>
+        </div>
+      </div>
+
+      <div id="itemList" class="item-list"></div>
+
+      <div class="block">
+        <label class="block-label" for="bulkOperation">Operation</label>
+        <select id="bulkOperation">
+          <option value="ai_html">Add / rewrite HTML with the agent</option>
+          <option value="ai_rebuild">Rebuild each selected item with the agent</option>
+          <option value="manual_html">Insert my own HTML snippet</option>
+          <option value="assignment_settings">Change assignment settings</option>
+        </select>
+      </div>
+
+      <div id="opHtml" class="block">
+        <div id="bulkStrategyWrap">
+        <label class="block-label" for="bulkStrategy">Placement</label>
+        <select id="bulkStrategy">
+          <option value="prepend">Add to the top (keep existing content)</option>
+          <option value="append">Add to the bottom (keep existing content)</option>
+          <option value="replace">Replace all existing content</option>
+        </select>
+        </div>
+
+        <div id="aiHtmlWrap">
+          <label class="block-label" for="bulkPrompt" id="bulkPromptLabel">Instruction to the agent</label>
+          <textarea id="bulkPrompt" rows="4"
+            placeholder="e.g. Add a standardized 'Getting Help' banner with office hours and the tutoring link."></textarea>
+        </div>
+
+        <div id="bulkTemplateWrap" class="block hidden">
+          <label class="block-label" for="bulkTemplate">Rebuild style reference <span class="muted">(optional)</span></label>
+          <select id="bulkTemplate">
+            <option value="">No template &mdash; preserve the current course style</option>
+          </select>
+          <div class="hint">For rebuilds, the agent receives the selected template&rsquo;s actual HTML plus each item&rsquo;s current HTML.</div>
+        </div>
+
+        <div id="manualHtmlWrap" class="hidden">
+          <label class="block-label" for="manualHtml">HTML snippet</label>
+          <textarea id="manualHtml" rows="6" placeholder="<div>&hellip;</div>"></textarea>
+        </div>
+      </div>
+
+      <div id="opSettings" class="block hidden">
+        <div class="hint">Blank fields are left unchanged. Applies to selected assignments only.</div>
+        <label class="block-label" for="setPoints">Points possible</label>
+        <input type="number" id="setPoints" min="0" step="0.5" placeholder="unchanged" />
+
+        <label class="block-label">Submission types</label>
+        <div class="chip-row" id="submissionTypes">
+          <label class="chip"><input type="checkbox" value="online_text_entry" /> Text entry</label>
+          <label class="chip"><input type="checkbox" value="online_upload" /> File upload</label>
+          <label class="chip"><input type="checkbox" value="online_url" /> Website URL</label>
+          <label class="chip"><input type="checkbox" value="on_paper" /> On paper</label>
+          <label class="chip"><input type="checkbox" value="none" /> No submission</label>
+        </div>
+
+        <label class="block-label" for="setGrading">Grading type</label>
+        <select id="setGrading">
+          <option value="">unchanged</option>
+          <option value="points">Points</option>
+          <option value="percent">Percentage</option>
+          <option value="pass_fail">Complete / Incomplete</option>
+          <option value="letter_grade">Letter grade</option>
+        </select>
+
+        <label class="block-label" for="setPublished">Published state</label>
+        <select id="setPublished">
+          <option value="">unchanged</option>
+          <option value="true">Published</option>
+          <option value="false">Unpublished</option>
+        </select>
+      </div>
+
+      <div id="bulkError" class="status-card error hidden"></div>
+      <button id="previewBulk" class="btn btn-primary btn-block">Preview change</button>
+
+      <div id="bulkPreview" class="block hidden">
+        <div class="section-title"><h2>Preview</h2><span id="bulkCounts" class="pill"></span></div>
+        <div id="bulkPreviewBody"></div>
+        <button id="runBulk" class="btn btn-danger btn-block">Apply to Canvas</button>
+        <button id="discardBulk" class="btn btn-ghost btn-block">Cancel</button>
+      </div>
+
+      <div id="bulkRunPanel" class="block hidden">
+        <div class="section-title"><h2>Run log</h2><span id="bulkRunStatus" class="pill"></span></div>
+        <div class="progress-track"><div id="bulkProgressBar" class="progress-fill"></div></div>
+        <div id="bulkRunLog" class="run-log"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TEMPLATES ============ -->
+  <section id="view-templates" class="view">
+    <input type="search" id="templateSearch" placeholder="Search templates&hellip;" />
+    <div class="hint">Browse the actual page designs below. Choose <strong>Use in Build</strong> to carry a template into the Build tool as the style reference.</div>
+    <div id="templateList" class="template-list"></div>
+  </section>
+
+  <!-- ============ SETTINGS ============ -->
+  <section id="view-settings" class="view">
+    <div class="block">
+      <label class="block-label" for="proxyUrl">Organization proxy URL (preconfigured)</label>
+      <input type="url" id="proxyUrl" placeholder="https://script.google.com/macros/s/.../exec" />
+      <div class="hint">Already set for Ingham ISD. Change it only if the organization deploys a replacement proxy.</div>
+
+      <button id="saveSettings" class="btn btn-primary btn-block">Save settings</button>
+      <div id="settingsStatus" class="status-card hidden"></div>
+    </div>
+
+    <div class="block">
+      <button id="reviewDataNotice" class="btn btn-ghost btn-block">Review data-use notice</button>
+    </div>
+
+    <div class="block">
+      <div class="section-title"><h2>Diagnostics</h2></div>
+      <button id="testAgent" class="btn btn-ghost btn-block">Test agent connection</button>
+      <button id="testCanvas" class="btn btn-ghost btn-block">Test Canvas access</button>
+      <div id="diagnostics" class="run-log hidden"></div>
+    </div>
+  </section>
+
+</main>
+
+<script src="templates.js"></script>
+<script src="sources.js"></script>
+<script src="canvas-engine.js"></script>
+<script src="panel.js"></script>
+</body>
+</html>
