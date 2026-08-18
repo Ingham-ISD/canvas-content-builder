@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Canvas Content Builder",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "Edit Canvas pages with AI or plan, build, and bulk-edit course content using the teacher's logged-in session.",
   "permissions": ["sidePanel", "activeTab", "scripting", "storage", "tabs"],
   "host_permissions": [
